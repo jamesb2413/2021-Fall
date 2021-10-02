@@ -110,61 +110,117 @@ class BinarySearchTree:
     Deletes a key from the tree
     Returns the root of the tree or None if the tree has no nodes
     '''
-    # Unit Test for tree with no nodes, deleting root of tree with one node
 
-
-    def get_pred(self):
-        # Find pred, decrementing along path
+    def get_pred(self, parent):
         pred = self.left
         while pred.right is not None:
+            pred.size -= 1
+            parent = pred
             pred = pred.right
-        return pred
+        return pred, parent
 
-    # void function, swaps data from delete node and predecessor
+    # swaps data from delete node and predecessor
     def pred_swap(self, pred):
         k_i_tmp = self.key, self.item
         self.key = pred.key
         self.item = pred.item
         pred.key = k_i_tmp[0]
         pred.item = k_i_tmp[1]
+        return pred
 
     # searches for delete node and decrements sizes on the path
     # returns delete node, parent tuple
     def search_dec(self, key, parent):
+        self.size -= 1
         if self.key == key:
             return self, parent
         elif key > self.key:
-            self.size -= 1
             return self.right.search_dec(key, self)
         else:
-            self.size -= 1
             return self.left.search_dec(key, self)
+
+    # def delete(self, key):
+    #     if self is None:
+    #         return None
+    #     if self.search(key) is None:
+    #         return self
+    #     # del: tuple (<node to delete>, <parent>)
+    #     del_node, del_parent = self.search_dec(key, None)
+    #     # Two children
+    #     if del_node.left is not None and del_node.right is not None:
+    #         # Find greatest predecessor and swap data
+    #         del_node.pred_swap(del_node.get_pred())
+    #         # Delete swapped node
+    #         if del_parent is None:
+    #             return del_node.delete(key)
+    #         elif del_parent.left is del_node:
+    #             del_parent.left = del_node.delete(key)
+    #         else:
+    #             del_parent.right = del_node.delete(key)
+    #     else:
+    #         # delete node is the root
+    #         if del_parent is None:
+    #             # No children
+    #             if del_node.left is None and del_node.right is None:
+    #                 self = None
+    #             # Left child
+    #             elif del_node.right is None and del_node.left is not None:
+    #                 self = del_node.left
+    #             # Right child
+    #             else:
+    #                 self = del_node.right
+    #         # delete node is left subtree of parent
+    #         elif del_parent.left is del_node:
+    #             # No children
+    #             if del_node.left is None and del_node.right is None:
+    #                 del_parent.left = None
+    #             # Left child
+    #             elif del_node.right is None and del_node.left is not None:
+    #                 del_parent.left = del_node.left
+    #             # Right child
+    #             else:
+    #                 del_parent.left = del_node.right
+    #         # delete node is right subtree of parent
+    #         else:
+    #             # No children
+    #             if del_node.left is None and del_node.right is None:
+    #                 del_parent.right = None
+    #             # Left child
+    #             elif del_node.right is None and del_node.left is not None:
+    #                 del_parent.right = del_node.left
+    #             # Right child
+    #             else:
+    #                 del_parent.right = del_node.right
+    #     return self
 
     def delete(self, key):
         if self is None:
             return None
         if self.search(key) is None:
             return self
-        # del: tuple (<node to delete>, <parent>)
         del_node, del_parent = self.search_dec(key, None)
         # Two children
         if del_node.left is not None and del_node.right is not None:
             # Find greatest predecessor and swap data
-            pred_swap(del_node, get_pred(del_node))
+            pred, d_par2 = del_node.get_pred(del_node)
+            d_node2 = del_node.pred_swap(pred)
             # Delete swapped node
-            delete(del_node, key)
+            if d_par2.left is d_node2:
+                d_par2.left = None
+            else:
+                d_par2.right = None
         else:
             # delete node is the root
             if del_parent is None:
-                # No children
+                # no children
                 if del_node.left is None and del_node.right is None:
-                    self = None
-                # Left child
+                    return None
+                # left child
                 elif del_node.right is None and del_node.left is not None:
-                    self = del_node.left
-                # Right child
+                    return del_node.left
+                # right child
                 else:
-                    self = del_node.right
+                    return del_node.right
             # delete node is left subtree of parent
             elif del_parent.left is del_node:
                 # No children
@@ -221,19 +277,19 @@ class BinarySearchTree:
         rootSize = self.size
         llExists = 0
         lrExists = 0
+        leftRight = self.right.left
         if self.left is not None:
             llSize = self.left.size
             llExists = 1
         if self.right.left is not None:
-            leftRight = self.right.left
             lrSize = leftRight.size
             lrExists = 1
         # set pointers and adjust sizes
         self = self.right
         self.size = rootSize
         self.left = left
+        self.left.right = leftRight
         if lrExists and llExists:
-            self.left.right = leftRight
             self.left.size = llSize + lrSize + 1
         elif lrExists:
             self.left.right = leftRight
@@ -250,19 +306,19 @@ class BinarySearchTree:
         rootSize = self.size
         rrExists = 0
         rlExists = 0
+        rightLeft = self.left.right
         if self.right is not None:
             rrSize = self.right.size
             rrExists = 1
         if self.left.right is not None:
-            rightLeft = self.left.right
             rlSize = rightLeft.size
             rlExists = 1
         # set pointers and adjust sizes
         self = self.left
         self.size = rootSize
         self.right = right
+        self.right.left = rightLeft
         if rlExists and rrExists:
-            self.right.left = rightLeft
             self.right.size = rrSize + rlSize + 1
         elif rlExists:
             self.right.left = rightLeft
@@ -298,3 +354,37 @@ class BinarySearchTree:
         if self.right is not None:
             self.right.print_bst()
         return self
+
+def printBTree(node, spaces=0, child=""):
+    if node is None:
+        return ""
+    else:
+        for i in range(spaces):
+            print(" ", end="")
+        print(child + str(node.key))
+        spaces += 2
+        printBTree(node.left, spaces, "L")
+        printBTree(node.right, spaces, "R")
+
+def construct_tree_example():
+    T = BinarySearchTree()
+    T.key = 4
+    T.insert(2)
+    T.insert(6)
+    T.insert(3)
+    T.insert(1)
+    T.insert(80)
+    T.insert(60)
+    # T.print_bst()
+    return T
+
+bst = construct_tree_example()
+printBTree(bst)
+bst.delete(2)
+printBTree(bst)
+
+# llRot = bst.rotate("L", "L")
+# print(llRot.key)
+# print(llRot.left.key)
+# print(llRot.right.key)
+# printBTree(llRot)

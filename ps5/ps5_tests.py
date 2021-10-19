@@ -20,7 +20,7 @@ class Debugger:
     def __init__(self):
         self.counter = 0
         self._size_counter = 0
-    
+
     def clear(self):
         self.counter = 0
         self._size_counter = 0

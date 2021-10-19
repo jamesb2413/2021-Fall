@@ -85,13 +85,13 @@ def MergeSortSelect(arr, query_list):
 
 def experiments():
     # Edit this parameter
-    k = [8, 9, 10, 11, 12]
+    k = [10, 12, 14, 16, 18]
     
     
     # Feel free to edit these initial parameters
 
-    RUNS = 20       # Number of runs for each trial; more runs means better distributions approximation but longer experiment
-    HEIGHT = 1.5    # Width of a chart
+    RUNS = 50       # Number of runs for each trial; more runs means better distributions approximation but longer experiment
+    HEIGHT = 1.4    # Width of a chart
     WIDTH = 3       # Height of a chart
     # Determines if subcharts share the same axis scale/limits
     # ... since the trails cover a wide range, sharing the same scale/limits can cause some lines to be too small.

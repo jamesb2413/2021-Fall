@@ -1,5 +1,6 @@
 from itertools import product, combinations
 from pysat.solvers import Glucose3
+from collections import deque
 
 '''
 Before you start: Read the README and the Graph implementation below.
@@ -123,6 +124,7 @@ def exhaustive_search_coloring(G, k=3):
 # Precondition: Assumes that the precolored_nodes form an independent set.
 # If successful, modifies G.colors and returns the coloring.
 # If no coloring is possible, resets all of G's colors to None and returns None.
+
 def bfs_2_coloring(G, precolored_nodes=None):
     # Assign every precolored node to have color 2
     # Initialize visited set to contain precolored nodes if they exist
@@ -138,8 +140,24 @@ def bfs_2_coloring(G, precolored_nodes=None):
             return G.colors
     
     # Complete this function by implementing two-coloring using the colors 0 and 1.
-    # Partition G - visited into connected components
+    # maybe remove and check if node is in visited
 
+    for node in range(G.N):
+        if node not in visited:
+            f = deque([node])
+            while len(f) > 0:
+                cur = f.popleft()
+                notC = 1
+                for nbor in G.edges[cur]:
+                    if nbor not in visited:
+                        f.append(nbor)
+                    else:
+                        if G.colors[nbor] == 0:
+                            notC = 0    
+                G.colors[cur] = (notC + 1) % 2
+                visited.add(cur)
+    if G.is_graph_coloring_valid():
+        return G.colors
 
     # If there is no valid coloring, reset all the colors to None using G.reset_colors()
     G.reset_colors()
@@ -167,7 +185,14 @@ def bfs_2_coloring(G, precolored_nodes=None):
 
 # Given an instance of the Graph class G and a subset of precolored nodes, searches for a 3 coloring
 def iset_bfs_3_coloring(G):
-    # TODO: Complete this function.
+    nThirdCeil = G.N // 3 + 1
+    for r in range(nThirdCeil):
+        for combo in combinations(range(G.N), r):
+            subset = list(combo)
+            if G.is_independent_set(subset):
+                two = bfs_2_coloring(G, subset)
+                if two is not None:
+                    return two
 
     G.reset_colors()
     return None
@@ -194,7 +219,15 @@ def iset_bfs_3_coloring(G):
 def sat_3_coloring(G):
     solver = Glucose3()
 
-    # TODO: Add the clauses to the solver
+    # Add the clauses to the solver
+    for node in range(G.N):
+        base = 3 * node + 1
+        solver.add_clause([base, base + 1, base + 2])
+        for node2 in range(node + 1, G.N):
+            base2 = 3 * node2 + 1
+            solver.add_clause([-base, -base2])
+            solver.add_clause([-(base+1), -(base2+1)])
+            solver.add_clause([-(base+2), -(base2+2)])
 
     # Attempt to solve, return None if no solution possible
     if not solver.solve():
@@ -205,6 +238,10 @@ def sat_3_coloring(G):
     solution = solver.get_model()
     
     # TODO: If a solution is found, convert it into a coloring and update G.colors
+    for node in range(G.N):
+        for color in range(3):
+            if solution[node*color] > 0:
+                G.colors[node] = color
 
     return G.colors
 
